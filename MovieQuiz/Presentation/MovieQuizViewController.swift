@@ -98,6 +98,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             return ""
         }
         
+        // изменяем отображение даты и времени лучшей игры
         let gameDate = bestGame.date
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.YY HH:MM"
