@@ -98,10 +98,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             return ""
         }
         
-        var gameDate = bestGame.date
-        var dateFormatter = DateFormatter()
+        let gameDate = bestGame.date
+        let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.YY HH:MM"
-        var resultDate = dateFormatter.string(from: gameDate)
+        let resultDate = dateFormatter.string(from: gameDate)
         
         let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
         let totalPlaysCountLine = "Количество сыгранных квизов: \(statisticService.gameCount)"
