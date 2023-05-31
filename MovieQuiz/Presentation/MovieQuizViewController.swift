@@ -6,11 +6,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Properties
     
     // переменные из экрана
-    @IBOutlet private var imageView: UIImageView!
-    @IBOutlet private var textLabel: UILabel!
-    @IBOutlet private var counterLabel: UILabel!
-    @IBOutlet private var yesButton: UIButton!
-    @IBOutlet private var noButton: UIButton!
+    @IBOutlet weak private var imageView: UIImageView!
+    @IBOutlet weak private var textLabel: UILabel!
+    @IBOutlet weak private var counterLabel: UILabel!
+    @IBOutlet weak private var yesButton: UIButton!
+    @IBOutlet weak private var noButton: UIButton!
+    @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     /// переменная с индексом текущего вопроса, начальное значение 0
     private var currentQuestionIndex = 0
     /// переменная со счётчиком правильных ответов, начальное значение закономерно 0
@@ -71,6 +72,30 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
+    
+    /// метод, который будет показывать индикатор загрузки
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false // показываем индикатор
+        activityIndicator.startAnimating() // включаем анимацию
+    }
+    /// метод, скрывающий индикатор загрузки
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    /// метод, отображающий алерт с ошибкой загрузки
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        let model = AlertModel(
+            title: "Error",
+            message: message,
+            buttonText: "Try again",
+            completion: { [weak self] in guard let self = self else {return}
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+        })
+    }
+    
     
     private func showFinalResults() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
