@@ -130,17 +130,17 @@
                                 </constraints>
                             </stackView>
                             <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="QDh-kf-jpy">
-                                <rect key="frame" x="197" y="427.5" width="20" height="20"/>
+                                <rect key="frame" x="197" y="434.5" width="20" height="20"/>
                             </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="sQ7-X7-HhH" secondAttribute="trailing" constant="20" id="1oW-v6-yLs"/>
-                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="1s4-Q8-Zi7"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="CKG-y8-WAc"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="Crv-6e-OXj"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="bIN-ZS-mk0"/>
-                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="cZ5-LM-Jf5"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="p7D-mg-Jg4"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="z6B-F2-CfM"/>
                         </constraints>
                     </view>

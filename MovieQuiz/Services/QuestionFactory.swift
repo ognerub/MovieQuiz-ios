@@ -51,9 +51,10 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
             var imageData = Data()
             
             do {
-                imageData = try Data(contentsOf: movie.imageURL)
+                imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
                 print("Failed to load image")
+                self.loadData() // ???
             }
             let rating = Float(movie.rating) ?? 0
             let text = "Рейтинг этого фильма больше чем 7?"
@@ -61,9 +62,8 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
             let question = QuizQuestion(image: imageData,
                                         text: text,
                                         correctAnswer: correctAnswer)
-            
             DispatchQueue.main.async {
-                [weak self] in guard let self = self else { return }
+                [weak self] in guard let self = self else { return print("Some log 1")}
                 self.delegate?.didReceiveNextQuestion(question)
             }
         }

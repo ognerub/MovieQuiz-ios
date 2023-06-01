@@ -35,13 +35,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         // текущий вопрос - вопрос из массива по индексу текушеко вопроса
         // инъекция через свойство, поэтому задаем делегата в методе
         questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
-        statisticService = StatisticServiceImpl()
-        showLoadingIndicator()
+        showLoadingIndicator()        
         questionFactory?.loadData()
-        // исправляем ошибки (1)
-        //questionFactory?.requestNextQuestion()
-        // alertPresenter
-        //alertPresenter = AlertPresenterImpl(viewController: self)
+        statisticService = StatisticServiceImpl()
+        alertPresenter = AlertPresenterImpl(viewController: self)
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -74,12 +71,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderWidth = 0
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        hideLoadingIndicator()
     }
     
     private func showFinalResults() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
-        
-            
         
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
@@ -126,13 +122,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
            showFinalResults()
         } else {
             currentQuestionIndex += 1
+            showLoadingIndicator()
             // идем в состояние "Вопрос показан"
             // исправляем ошибки (7)
             questionFactory?.requestNextQuestion()
         }
     }
     
-    /// метод, меняющий не только цвет рамки
+    /// метод отображающий результат ответа
     private func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -152,12 +149,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Loading from network
     
     func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        activityIndicator.stopAnimating()
+        hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     
     func didFailToLoadData(with error: Error) {
+        hideLoadingIndicator()
         showNetworkError(message: error.localizedDescription)
     }
     
@@ -173,15 +170,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     /// метод, отображающий алерт с ошибкой загрузки
     private func showNetworkError(message: String) {
-        hideLoadingIndicator()
+        
         let model = AlertModel(
-            title: "Error",
+            title: "Что-то пошло не так(",
+            /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
             message: message,
-            buttonText: "Try again",
+            //message: "Не удалось загрузить данные",
+            buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
         })
+        alertPresenter?.show(with: model)
     }
     
     
