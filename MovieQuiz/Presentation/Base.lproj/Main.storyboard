@@ -138,9 +138,9 @@
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="sQ7-X7-HhH" secondAttribute="trailing" constant="20" id="1oW-v6-yLs"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="CKG-y8-WAc"/>
-                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" constant="7" id="Crv-6e-OXj"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="Crv-6e-OXj"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="bIN-ZS-mk0"/>
-                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="p7D-mg-Jg4"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="p7D-mg-Jg4"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="z6B-F2-CfM"/>
                         </constraints>
                     </view>

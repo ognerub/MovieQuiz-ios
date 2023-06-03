@@ -26,27 +26,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var alertPresenter: AlertPresenterProtocol?
     
     private var statisticService: StatisticService?
-    
-    
-    
             
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 20
-        // текущий вопрос - вопрос из массива по индексу текушеко вопроса
         // инъекция через свойство, поэтому задаем делегата в методе
-        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self, dataLoadedValue: false)
+        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
         showLoadingIndicator()
-        questionFactory?.loadData()
+        questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
         statisticService = StatisticServiceImpl()
         alertPresenter = AlertPresenterImpl(viewController: self)
-        
-        
     }
     
     // MARK: - QuestionFactoryDelegate
+    
+    /// метод получения следующего вопроса, и действий с этим связанных
     func didReceiveNextQuestion(_ question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -69,8 +65,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return questionStep
     }
- 
-    
+     
     /// метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
@@ -91,26 +86,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
 //        /// запускаем через 1 секунду с помощью диспетчера задач
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
 //            /// код, который мы хотим вызвать через 1 секунду
-        
-       if questionFactory?.isDataLoaded == true {
-            self.showNextQuestionOrResults()
-        }
-        else {
-            yesButton.isEnabled = true
-            noButton.isEnabled = true
-        }
+        self.showNextQuestionOrResults()
     }
     
     /// метод, содержащий логику перехода в один из сценариев
     private func showNextQuestionOrResults() {
-        // исправляем ошибки (6)
         if currentQuestionIndex == questionsAmount - 1 {
             // идем в состояние "Результат квиза"
            showFinalResults()
         } else {
             currentQuestionIndex += 1
             showLoadingIndicator()
-            // идем в состояние "Вопрос показан"
+            // идем в состояние "Запрос следующего вопроса"
             questionFactory?.requestNextQuestion()
         }
     }
@@ -133,6 +120,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         alertPresenter?.show(with: alertModel)
     }
     
+    /// метод для формирования статистического сообщения в конце игры
     private func makeResultMessage() -> String {
 
         guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
@@ -170,17 +158,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.stopAnimating()
     }
     
-    /// метод начала загрузки
+    /// метод начала загрузки (происходит единожды)
     func didLoadDataFromServer() {
         hideLoadingIndicator()
-        print("Ready to load. Current question is \(String(describing: currentQuestion))")
         questionFactory?.requestNextQuestion()
     }
     
-    /// метод ошибки во время загрузки
+    /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
     func didFailToLoadData(with error: Error) {
         hideLoadingIndicator()
-        print("Load failed. Current question is \(String(describing: currentQuestion))")
         showNetworkError(message: error.localizedDescription)
     }
     
@@ -191,9 +177,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             title: "Что-то пошло не так(",
             /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
             message: message,
-            //message: "Не удалось загрузить данные",
             buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
+            // сбрасываем состояние игры на 1 вопрос
             self.currentQuestionIndex = -1
             self.correctAnswers = 0
         })

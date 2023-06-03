@@ -16,23 +16,14 @@ final class QuestionFactoryImpl {
     
     private var movies: [MostPopularMovie] = []
     
-    private var dataLoadedValue: Bool
-    
-    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?, dataLoadedValue: Bool) {
+    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?) {
         self.moviesLoader = moviesLoader
         self.delegate = delegate
-        self.dataLoadedValue = dataLoadedValue
     }
     
 }
 
 extension QuestionFactoryImpl: QuestionFactoryProtocol {
-    
-    var isDataLoaded: Bool {
-        get {
-            dataLoadedValue
-        }
-    }
     
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
@@ -69,7 +60,6 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
                     [weak self ] in guard let self = self else { return }
                     self.delegate?.didFailToLoadData(with: NetworkClient.NetworkError.codeError)
                     print("Failed to load image!")
-                    self.dataLoadedValue = false
                 }
             }
             let rating = Float(movie.rating) ?? 0
@@ -83,7 +73,6 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
                 [weak self ] in guard let self = self else { return }
                 self.delegate?.didReceiveNextQuestion(question)
                 print("Image recieved!")
-                self.dataLoadedValue = true
             }
             
         }
