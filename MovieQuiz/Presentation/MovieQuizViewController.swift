@@ -17,7 +17,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     /// переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
     /// переменная общего количества вопросов
-    private let questionsAmount: Int = 10
+    private let questionsAmount = 10
     /// переменная с текущим  вопросом
     private var currentQuestion: QuizQuestion?
     /// переменная фабрики вопросов подписанная под протокол
@@ -27,6 +27,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private var statisticService: StatisticService?
     
+    
+    
+            
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,14 +37,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.cornerRadius = 20
         // текущий вопрос - вопрос из массива по индексу текушеко вопроса
         // инъекция через свойство, поэтому задаем делегата в методе
-        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
-        statisticService = StatisticServiceImpl()
+        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self, dataLoadedValue: false)
         showLoadingIndicator()
         questionFactory?.loadData()
-        // исправляем ошибки (1)
-        //questionFactory?.requestNextQuestion()
-        // alertPresenter
-        //alertPresenter = AlertPresenterImpl(viewController: self)
+        statisticService = StatisticServiceImpl()
+        alertPresenter = AlertPresenterImpl(viewController: self)
+        
+        
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -53,6 +55,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in self?.show(quiz: viewModel)
         }
+        self.yesButton.isEnabled = true
+        self.noButton.isEnabled = true
     }
     
     // MARK: - Private functions
@@ -74,12 +78,50 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.borderWidth = 0
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
+        hideLoadingIndicator()
     }
+    
+    /// метод отображающий результат ответа
+    private func showAnswerResult(isCorrect: Bool) {
+        imageView.layer.borderWidth = 8
+        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+        if isCorrect {correctAnswers += 1}
+        
+//        /// запускаем через 1 секунду с помощью диспетчера задач
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
+//            /// код, который мы хотим вызвать через 1 секунду
+        
+       if questionFactory?.isDataLoaded == true {
+            self.showNextQuestionOrResults()
+        }
+        else {
+//            self.showNetworkError(message: "Error mine")
+            yesButton.isEnabled = true
+            noButton.isEnabled = true
+        }
+    }
+    
+    /// метод, содержащий логику перехода в один из сценариев
+    private func showNextQuestionOrResults() {
+        // исправляем ошибки (6)
+        if currentQuestionIndex == questionsAmount - 1 {
+            // идем в состояние "Результат квиза"
+           showFinalResults()
+        } else {
+            currentQuestionIndex += 1
+            showLoadingIndicator()
+            // идем в состояние "Вопрос показан"
+            // исправляем ошибки (7)
+            questionFactory?.requestNextQuestion()
+        }
+    }
+    
+    // MARK: - Show final results
     
     private func showFinalResults() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
-        
-            
         
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
@@ -118,48 +160,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         return resultMessage
     }
     
-    /// метод, содержащий логику перехода в один из сценариев
-    private func showNextQuestionOrResults() {
-        // исправляем ошибки (6)
-        if currentQuestionIndex == questionsAmount - 1 {
-            // идем в состояние "Результат квиза"
-           showFinalResults()
-        } else {
-            currentQuestionIndex += 1
-            // идем в состояние "Вопрос показан"
-            // исправляем ошибки (7)
-            questionFactory?.requestNextQuestion()
-        }
-    }
-    
-    /// метод, меняющий не только цвет рамки
-    private func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
-        if isCorrect {correctAnswers += 1}
-        
-        /// запускаем через 1 секунду с помощью диспетчера задач
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
-            /// код, который мы хотим вызвать через 1 секунду
-            self.yesButton.isEnabled = true
-            self.noButton.isEnabled = true
-            self.showNextQuestionOrResults()
-        }
-    }
     
     // MARK: - Loading from network
-    
-    func didLoadDataFromServer() {
-        activityIndicator.isHidden = true
-        activityIndicator.stopAnimating()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
     
     /// метод, который будет показывать индикатор загрузки
     private func showLoadingIndicator() {
@@ -171,17 +173,35 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
+    
+    
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        hideLoadingIndicator()
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+        print("Current question is \(String(describing: currentQuestion))")
+        showNetworkError(message: error.localizedDescription)
+    }
+    
     /// метод, отображающий алерт с ошибкой загрузки
     private func showNetworkError(message: String) {
-        hideLoadingIndicator()
+        
         let model = AlertModel(
-            title: "Error",
+            title: "Что-то пошло не так(",
+            /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
             message: message,
-            buttonText: "Try again",
+            //message: "Не удалось загрузить данные",
+            buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
-            self.currentQuestionIndex = 0
+            self.currentQuestionIndex = -1
             self.correctAnswers = 0
         })
+        alertPresenter?.show(with: model)
     }
     
     

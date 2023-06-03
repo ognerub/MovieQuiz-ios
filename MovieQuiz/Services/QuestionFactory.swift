@@ -16,14 +16,23 @@ final class QuestionFactoryImpl {
     
     private var movies: [MostPopularMovie] = []
     
-    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?) {
+    private var dataLoadedValue: Bool
+    
+    init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?, dataLoadedValue: Bool) {
         self.moviesLoader = moviesLoader
         self.delegate = delegate
+        self.dataLoadedValue = dataLoadedValue
     }
     
 }
 
 extension QuestionFactoryImpl: QuestionFactoryProtocol {
+    
+    var isDataLoaded: Bool {
+        get {
+            dataLoadedValue
+        }
+    }
     
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
@@ -33,8 +42,10 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
                 case .success(let mostPopularMovies):
                     self.movies = mostPopularMovies.items // сохранение фильма в новую переменную
                     self.delegate?.didLoadDataFromServer() // сообщаем о загрузке данных
+                    
                 case .failure(let error):
                     self.delegate?.didFailToLoadData(with: error) // сообщаем об ошибке
+                    
                 }
             }
         }
@@ -44,6 +55,7 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
     func requestNextQuestion() {
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
+            
             let index = (0..<self.movies.count).randomElement() ?? 0
             
             guard let movie = self.movies[safe: index] else { return }
@@ -51,9 +63,14 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
             var imageData = Data()
             
             do {
-                imageData = try Data(contentsOf: movie.imageURL)
+                imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
-                print("Failed to load image")
+                DispatchQueue.main.async {
+                    [weak self ] in guard let self = self else { return }
+                    self.delegate?.didFailToLoadData(with: NetworkClient.NetworkError.codeError)
+                    print("Failed to load image!")
+                    self.dataLoadedValue = false
+                }
             }
             let rating = Float(movie.rating) ?? 0
             let text = "Рейтинг этого фильма больше чем 7?"
@@ -63,20 +80,15 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
                                         correctAnswer: correctAnswer)
             
             DispatchQueue.main.async {
-                [weak self] in guard let self = self else { return }
+                [weak self ] in guard let self = self else { return }
                 self.delegate?.didReceiveNextQuestion(question)
+                print("Image recieved!")
+                self.dataLoadedValue = true
             }
+            
         }
-        
-        //            delegate?.didReceiveNextQuestion(nil)
-        //            assertionFailure("Question is empty")
-        //            return
-        //        }
-        //        let question = questions[safe: index]
-        //        delegate?.didReceiveNextQuestion(question)
     }
 }
-
 /// массив со списком моковых вопросов
 /* private let questions: [QuizQuestion] = [
  QuizQuestion(

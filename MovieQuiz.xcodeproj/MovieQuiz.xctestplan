@@ -1,0 +1,23 @@
+{
+  "configurations" : [
+    {
+      "id" : "09C0912E-7E64-4D57-B97F-8BDA0F6D94FF",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:MovieQuiz.xcodeproj",
+      "identifier" : "AD1ABAAD2831907B00B3E448",
+      "name" : "MovieQuiz"
+    }
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}

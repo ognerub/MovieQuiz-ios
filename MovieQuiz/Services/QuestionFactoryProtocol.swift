@@ -8,6 +8,9 @@
 import Foundation
 
 protocol QuestionFactoryProtocol {
+    
+    var isDataLoaded: Bool {get}
+    
     func requestNextQuestion()
     func loadData()
 }
