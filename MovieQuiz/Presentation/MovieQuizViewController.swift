@@ -66,7 +66,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             // меняем отображение картинки с локальной на загруженную
             image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
-            // исправляем ошибки (4)
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return questionStep
     }
@@ -97,7 +96,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self.showNextQuestionOrResults()
         }
         else {
-//            self.showNetworkError(message: "Error mine")
             yesButton.isEnabled = true
             noButton.isEnabled = true
         }
@@ -113,7 +111,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             currentQuestionIndex += 1
             showLoadingIndicator()
             // идем в состояние "Вопрос показан"
-            // исправляем ошибки (7)
             questionFactory?.requestNextQuestion()
         }
     }
@@ -131,7 +128,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 self.imageView.layer.borderColor = nil
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                // исправляем ошибки (5)
                 self.questionFactory?.requestNextQuestion()
             })
         alertPresenter?.show(with: alertModel)
@@ -174,17 +170,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.stopAnimating()
     }
     
-    
+    /// метод начала загрузки
     func didLoadDataFromServer() {
         hideLoadingIndicator()
+        print("Ready to load. Current question is \(String(describing: currentQuestion))")
         questionFactory?.requestNextQuestion()
     }
     
+    /// метод ошибки во время загрузки
     func didFailToLoadData(with error: Error) {
         hideLoadingIndicator()
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
-        print("Current question is \(String(describing: currentQuestion))")
+        print("Load failed. Current question is \(String(describing: currentQuestion))")
         showNetworkError(message: error.localizedDescription)
     }
     
