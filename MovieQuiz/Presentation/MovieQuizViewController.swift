@@ -186,8 +186,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 self.imageView.image = UIImage(named: "Loading")
         })
         alertPresenter?.show(with: model)
-    }
-    
+    }    
     
     // MARK: - Actions
     /// нажатие на "ДА"
