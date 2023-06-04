@@ -26,7 +26,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var alertPresenter: AlertPresenterProtocol?
     
     private var statisticService: StatisticService?
-            
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,12 +61,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             // меняем отображение картинки с локальной на загруженную
-            image: UIImage(data: model.image) ?? UIImage(),
+            image: (UIImage(data: model.image) ?? UIImage(named: "Loading")) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return questionStep
     }
-     
+    
     /// метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
@@ -84,9 +84,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled = false
         if isCorrect {correctAnswers += 1}
         
-//        /// запускаем через 1 секунду с помощью диспетчера задач
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
-//            /// код, который мы хотим вызвать через 1 секунду
+        //        /// запускаем через 1 секунду с помощью диспетчера задач
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
+        //            /// код, который мы хотим вызвать через 1 секунду
         self.showNextQuestionOrResults()
     }
     
@@ -94,7 +94,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
             // идем в состояние "Результат квиза"
-           showFinalResults()
+            showFinalResults()
         } else {
             currentQuestionIndex += 1
             showLoadingIndicator()
@@ -115,7 +115,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             completion: { [weak self] in guard let self else { return }
                 self.imageView.layer.borderColor = nil
                 self.currentQuestionIndex = 0
-                self.correctAnswers = 0
+                self.correctAnswers = 0                
+                self.imageView.image = UIImage(named: "Loading")
                 self.questionFactory?.requestNextQuestion()
             })
         alertPresenter?.show(with: alertModel)
@@ -123,7 +124,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     /// метод для формирования статистического сообщения в конце игры
     private func makeResultMessage() -> String {
-
+        
         guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
             assertionFailure("Error message: Show final result")
             return ""
@@ -180,13 +181,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             message: message,
             buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
-            // сбрасываем состояние игры на 1 вопрос
-            self.currentQuestionIndex = -1
-            self.correctAnswers = 0
+                // сбрасываем состояние игры на 1 вопрос
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
                 self.imageView.image = UIImage(named: "Loading")
-        })
+                self.questionFactory?.requestNextQuestion()
+            })
         alertPresenter?.show(with: model)
-    }    
+    }
     
     // MARK: - Actions
     /// нажатие на "ДА"
