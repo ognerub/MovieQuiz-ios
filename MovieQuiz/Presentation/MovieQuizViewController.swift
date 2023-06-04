@@ -183,6 +183,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             // сбрасываем состояние игры на 1 вопрос
             self.currentQuestionIndex = -1
             self.correctAnswers = 0
+                self.imageView.image = UIImage(named: "Loading")
         })
         alertPresenter?.show(with: model)
     }
