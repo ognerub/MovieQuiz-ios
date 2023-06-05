@@ -9,6 +9,7 @@ import Foundation
 
 
 final class QuestionFactoryImpl {
+
     // добавляем загрузчик фильмов как зависимость
     private let moviesLoader: MoviesLoading
     
@@ -18,12 +19,14 @@ final class QuestionFactoryImpl {
     
     init(moviesLoader: MoviesLoading, delegate: QuestionFactoryDelegate?) {
         self.moviesLoader = moviesLoader
+
         self.delegate = delegate
     }
     
 }
 
 extension QuestionFactoryImpl: QuestionFactoryProtocol {
+
     
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
@@ -121,6 +124,7 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
  text: "Рейтинг этого фильма больше чем 6?",
  correctAnswer: false),
  ] */
+
 
 
 

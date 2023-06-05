@@ -40,6 +40,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         alertPresenter = AlertPresenterImpl(viewController: self)
     }
     
+
     
     // MARK: - QuestionFactoryDelegate
     
@@ -52,6 +53,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in self?.show(quiz: viewModel)
         }
+
         self.yesButton.isEnabled = true
         self.noButton.isEnabled = true
     }
@@ -63,9 +65,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             // меняем отображение картинки с локальной на загруженную
             image: (UIImage(data: model.image) ?? UIImage(named: "Loading")) ?? UIImage(),
             question: model.text,
+
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return questionStep
     }
+
     
     /// метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
@@ -76,6 +80,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         hideLoadingIndicator()
     }
     
+
     /// метод отображающий результат ответа
     private func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
@@ -92,6 +97,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     /// метод, содержащий логику перехода в один из сценариев
     private func showNextQuestionOrResults() {
+
         if currentQuestionIndex == questionsAmount - 1 {
             // идем в состояние "Результат квиза"
             showFinalResults()
@@ -99,6 +105,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             currentQuestionIndex += 1
             showLoadingIndicator()
             // идем в состояние "Запрос следующего вопроса"
+
             questionFactory?.requestNextQuestion()
         }
     }
@@ -108,6 +115,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func showFinalResults() {
         statisticService?.store(correct: correctAnswers, total: questionsAmount)
         
+
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
             message: makeResultMessage(),
@@ -128,6 +136,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
             assertionFailure("Error message: Show final result")
             return ""
+
         }
         
         // изменяем отображение даты и времени лучшей игры
@@ -160,6 +169,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.stopAnimating()
     }
     
+
     /// метод начала загрузки (происходит единожды)
     func didLoadDataFromServer() {
         hideLoadingIndicator()
@@ -189,7 +199,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             })
         alertPresenter?.show(with: model)
     }
-    
+
     // MARK: - Actions
     /// нажатие на "ДА"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
