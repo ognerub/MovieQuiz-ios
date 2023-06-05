@@ -54,7 +54,7 @@
                                             <constraint firstAttribute="height" constant="24" id="5ke-56-UKe"/>
                                         </constraints>
                                     </stackView>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Default" translatesAutoresizingMaskIntoConstraints="NO" id="w3U-nm-LmF" userLabel="Preview Image">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Loading" translatesAutoresizingMaskIntoConstraints="NO" id="w3U-nm-LmF" userLabel="Preview Image">
                                         <rect key="frame" x="0.0" y="44" width="374" height="561"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="w3U-nm-LmF" secondAttribute="height" multiplier="2:3" id="wa1-WC-ykm"/>
@@ -129,17 +129,27 @@
                                     <constraint firstAttribute="trailing" secondItem="ZGD-cd-Td1" secondAttribute="trailing" id="vB8-HH-4K8"/>
                                 </constraints>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="QDh-kf-jpy">
+                                <rect key="frame" x="197" y="434.5" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="20" id="Pge-Wp-Mb6"/>
+                                    <constraint firstAttribute="width" constant="20" id="txx-BA-lWi"/>
+                                </constraints>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="sQ7-X7-HhH" secondAttribute="trailing" constant="20" id="1oW-v6-yLs"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="CKG-y8-WAc"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="OKk-AV-4Ju"/>
+                            <constraint firstItem="QDh-kf-jpy" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="QQA-e5-45E"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="bIN-ZS-mk0"/>
                             <constraint firstItem="sQ7-X7-HhH" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="z6B-F2-CfM"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="QDh-kf-jpy" id="hBg-n0-EIW"/>
                         <outlet property="counterLabel" destination="0kV-RN-1l6" id="azY-bc-x1A"/>
                         <outlet property="imageView" destination="w3U-nm-LmF" id="k08-r9-Ypb"/>
                         <outlet property="noButton" destination="iEt-pX-rU0" id="Ki5-hL-hd7"/>
@@ -154,7 +164,7 @@
     </scenes>
     <color key="tintColor" name="YP White"/>
     <resources>
-        <image name="Default" width="335" height="502"/>
+        <image name="Loading" width="860" height="1449"/>
         <namedColor name="YP Black">
             <color red="0.10199999809265137" green="0.10599999874830246" blue="0.13300000131130219" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
