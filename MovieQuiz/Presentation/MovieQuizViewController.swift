@@ -38,9 +38,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
         statisticService = StatisticServiceImpl()
         alertPresenter = AlertPresenterImpl(viewController: self)
+
     }
     
-
     
     // MARK: - QuestionFactoryDelegate
     
@@ -53,11 +53,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in self?.show(quiz: viewModel)
         }
-
         self.yesButton.isEnabled = true
         self.noButton.isEnabled = true
     }
-    
+
     // MARK: - Private functions
     /// метод конвертации, принимаем моковый вопрос и возвращаем вью модель для экрана вопросов
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -167,15 +166,16 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func hideLoadingIndicator() {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
+
     }
     
-
     /// метод начала загрузки (происходит единожды)
     func didLoadDataFromServer() {
         hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     
+
     /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
     func didFailToLoadData(with error: Error) {
         hideLoadingIndicator()
