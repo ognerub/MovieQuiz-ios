@@ -13,12 +13,15 @@ protocol MoviesLoading {
 
 // создаем загрузчик
 struct MoviesLoader: MoviesLoading {
-    // создаем переменную в загрузчике
-    private let networkClient = NetworkClient()
+    // MARK: - Network Client
+    private let networkClient: NetworkRouting
+    
+    init(networkClient: NetworkRouting = NetworkClient()) {
+        self.networkClient = networkClient
+    }
     
     // MARK: - URL
     private var mostPopularMoviesUrl: URL {
-        // если не смогли преобразовать строку в URL, то приложение упадет
         guard let url = URL(string: //"https://imdb-api.com/en/API/MostPopularMovies/k_om7srkwp")
                             "https://imdb-api.com/en/API/MostPopularMovies/k_yc97138i") else {
             preconditionFailure("Unable to construct mostPopularMoviesUrl")
