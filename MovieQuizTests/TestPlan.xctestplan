@@ -18,6 +18,13 @@
         "identifier" : "84133F232A370CD500D41CC8",
         "name" : "MovieQuizTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:MovieQuiz.xcodeproj",
+        "identifier" : "848236B42A3CDA230095992B",
+        "name" : "MovieQuizUITests"
+      }
     }
   ],
   "version" : 1
