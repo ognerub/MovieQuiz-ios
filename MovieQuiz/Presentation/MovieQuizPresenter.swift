@@ -42,22 +42,36 @@ final class MovieQuizPresenter {
     weak var viewController: MovieQuizViewController?
     
     func yesButtonClicked() {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = true
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        didAnswer(isYes: true)
     }
     
     func noButtonClicked() {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = false
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        didAnswer(isYes: false)
     }
     
     /// создаем отдельный метод для повторяющегося кода кнопок
+    private func didAnswer(isYes: Bool) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let givenAnswer = isYes
+        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+    }
     
+    
+    // MARK: - QuestionFactoryDelegate
+    /// метод получения следующего вопроса, и действий с этим связанных
+    func didReceiveNextQuestion(_ question: QuizQuestion?) {
+        guard let question = question else {
+            return
+        }
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+                    self?.viewController?.show(quiz: viewModel)
+        }
+        viewController?.yesButton.isEnabled = true
+        viewController?.noButton.isEnabled = true
+    }
 }
 
