@@ -42,9 +42,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     func didReceiveNextQuestion(_ question: QuizQuestion?) {
         presenter.didReceiveNextQuestion(question)
-        
-        yesButton.isEnabled = true
-        noButton.isEnabled = true
     }
     
     // MARK: - Private functions
@@ -59,22 +56,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     /// метод отображающий результат ответа
     func showAnswerResult() {
-        
-        
-        
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
-        
         presenter.showAnswerResult()
     }
     
     func showNextQuestionOrResults() {
         presenter.showNextQuestionOrResults()
     }
-    
-    
-
-    
     
     // MARK: - Loading from network
 
@@ -90,19 +77,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     /// метод, отображающий алерт с ошибкой загрузки
     func showNetworkError(message: String) {
-        let model = AlertModel(
-            title: "Что-то пошло не так(",
-            /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
-            message: message,
-            buttonText: "Попробовать еще раз",
-            completion: { [weak self] in guard let self = self else {return}
-                // сбрасываем состояние игры на 1 вопрос
-                self.presenter.resetQuestionIndex()
-                self.presenter.correctAnswers = 0
-                self.imageView.image = UIImage(named: "Loading")
-                self.presenter.questionFactory?.requestNextQuestion()
-            })
-        presenter.alertPresenter?.show(with: model)
+        presenter.showNetworkError(message: message)
     }
     
     // MARK: - Actions

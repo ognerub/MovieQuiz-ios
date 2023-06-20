@@ -7,28 +7,17 @@
 
 import UIKit
 
-/// метод конвертации, принимаем моковый вопрос и возвращаем вью модель для экрана вопросов
 final class MovieQuizPresenter {
-    /// переменная общего количества вопросов
+    
     let questionsAmount: Int = 10
-    /// переменная с индексом текущего вопроса, начальное значение 0
     private var currentQuestionIndex: Int = 0
-    
     var currentQuestion: QuizQuestion?
-    
     var correctAnswers: Int = 0
-    
     weak var viewController: MovieQuizViewController?
-    
     var questionFactory: QuestionFactoryProtocol?
-    
     var statisticService: StatisticService?
-    
     var alertPresenter: AlertPresenterProtocol?
-    
     var isCorrect: Bool = false
-    
-    //@IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
@@ -54,8 +43,6 @@ final class MovieQuizPresenter {
     
     // MARK: - Actions
     
-    
-    
     func yesButtonClicked() {
         didAnswer(isYes: true)
     }
@@ -76,7 +63,7 @@ final class MovieQuizPresenter {
     
     
     // MARK: - QuestionFactoryDelegate
-    /// метод получения следующего вопроса, и действий с этим связанных
+
     func didReceiveNextQuestion(_ question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -86,6 +73,8 @@ final class MovieQuizPresenter {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
         }
+        viewController?.yesButton.isEnabled = true
+        viewController?.noButton.isEnabled = true
 
     }
     
@@ -104,15 +93,15 @@ final class MovieQuizPresenter {
         if isCorrect { self.correctAnswers += 1 }
         viewController?.imageView.layer.borderWidth = 8
         viewController?.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        
+        viewController?.yesButton.isEnabled = false
+        viewController?.noButton.isEnabled = false
         // запускаем через 1 секунду с помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
             // код, который мы хотим вызвать через 1 секунду
             self.showNextQuestionOrResults()
         }
     }
-    
-    // MARK: - Show final results
+
     func showFinalResults() {
         statisticService?.store(correct: correctAnswers, total: self.questionsAmount)
         let alertModel = AlertModel(
@@ -151,6 +140,23 @@ final class MovieQuizPresenter {
         let resultMessage = [currentCameResultLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
         
         return resultMessage
+    }
+    
+    
+    func showNetworkError(message: String) {
+        let model = AlertModel(
+            title: "Что-то пошло не так(",
+            /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
+            message: message,
+            buttonText: "Попробовать еще раз",
+            completion: { [weak self] in guard let self = self else {return}
+                // сбрасываем состояние игры на 1 вопрос
+                self.resetQuestionIndex()
+                self.correctAnswers = 0
+                self.viewController?.imageView.image = UIImage(named: "Loading")
+                self.questionFactory?.requestNextQuestion()
+            })
+        alertPresenter?.show(with: model)
     }
     
     /// метод, который будет показывать индикатор загрузки
