@@ -1,7 +1,7 @@
 import UIKit
 
 // добавляем в объявление класса реализацию протокола делегата
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     
     // MARK: - Properties
     // переменные из экрана
@@ -25,18 +25,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         /// добавляем чтобы заработала связь с MVP
         presenter.viewController = self
-        
-        imageView.layer.masksToBounds = true
-        imageView.layer.cornerRadius = 20
-        // инъекция через свойство, поэтому задаем делегата в методе
-        presenter.questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
-        presenter.showLoadingIndicator()
-        presenter.questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
-        presenter.statisticService = StatisticServiceImpl()
-        presenter.alertPresenter = AlertPresenterImpl(viewController: self)
+        presenter.viewDidLoad()
         
     }
     
@@ -63,18 +54,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         presenter.showNextQuestionOrResults()
     }
     
-    // MARK: - Loading from network
-
-    /// метод начала загрузки (происходит единожды)
-    func didLoadDataFromServer() {
-        presenter.hideLoadingIndicator()
-        presenter.questionFactory?.requestNextQuestion()
-    }
-    /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
-    func didFailToLoadData(with error: Error) {
-        presenter.hideLoadingIndicator()
-        showNetworkError(message: error.localizedDescription)
-    }
     /// метод, отображающий алерт с ошибкой загрузки
     func showNetworkError(message: String) {
         presenter.showNetworkError(message: message)

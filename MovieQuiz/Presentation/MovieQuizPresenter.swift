@@ -7,17 +7,45 @@
 
 import UIKit
 
-final class MovieQuizPresenter {
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    let questionsAmount: Int = 10
-    private var currentQuestionIndex: Int = 0
-    var currentQuestion: QuizQuestion?
-    var correctAnswers: Int = 0
-    weak var viewController: MovieQuizViewController?
     var questionFactory: QuestionFactoryProtocol?
+    weak var viewController: MovieQuizViewController?
     var statisticService: StatisticService?
     var alertPresenter: AlertPresenterProtocol?
+    var currentQuestion: QuizQuestion?
+    let questionsAmount: Int = 10
+    private var currentQuestionIndex: Int = 0
+    var correctAnswers: Int = 0
+
     var isCorrect: Bool = false
+    
+    // MARK: - For viewDidLoad() in MQVC
+    
+    func viewDidLoad() {
+        viewController?.imageView.layer.masksToBounds = true
+        viewController?.imageView.layer.cornerRadius = 20
+        // инъекция через свойство, поэтому задаем делегата в методе
+        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
+        showLoadingIndicator()
+        questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
+        statisticService = StatisticServiceImpl()
+        alertPresenter = AlertPresenterImpl(viewController: viewController)
+    }
+    
+    // MARK: - Loading from network
+    /// метод начала загрузки (происходит единожды)
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
+    func didFailToLoadData(with error: Error) {
+        hideLoadingIndicator()
+        showNetworkError(message: error.localizedDescription)
+    }
+    
+    // MARK: - Other functions (methods)
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
