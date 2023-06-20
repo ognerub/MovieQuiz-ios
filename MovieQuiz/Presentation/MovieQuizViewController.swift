@@ -11,20 +11,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
-    /// переменная с индексом текущего вопроса, начальное значение 0
-    private var currentQuestionIndex = 0
     /// переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
-    /// переменная общего количества вопросов
-    private let questionsAmount = 10
     /// переменная с текущим  вопросом
     private var currentQuestion: QuizQuestion?
     /// переменная фабрики вопросов подписанная под протокол
     private var questionFactory: QuestionFactoryProtocol?
     /// переменная алерт сообщения подписанная под протокол
     private var alertPresenter: AlertPresenterProtocol?
-    
+    ///  переменная сервиса статистики
     private var statisticService: StatisticService?
+    /// переменная MVP (презентера) созданная после рефакторинга
+    private var presenter = MovieQuizPresenter()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -47,7 +45,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             return
         }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in self?.show(quiz: viewModel)
         }
         self.yesButton.isEnabled = true
@@ -55,16 +53,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     // MARK: - Private functions
-    /// метод конвертации, принимаем моковый вопрос и возвращаем вью модель для экрана вопросов
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
-            // меняем отображение картинки с локальной на загруженную
-            image: (UIImage(data: model.image) ?? UIImage(named: "Loading")) ?? UIImage(),
-            question: model.text,
-            
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
-    }
+
     /// метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
@@ -89,11 +78,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     /// метод, содержащий логику перехода в один из сценариев
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             // идем в состояние "Результат квиза"
             showFinalResults()
         } else {
-            currentQuestionIndex += 1
+            presenter.swithToNextQuestion()
             showLoadingIndicator()
             // идем в состояние "Запрос следующего вопроса"
             questionFactory?.requestNextQuestion()
@@ -102,14 +91,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - Show final results
     private func showFinalResults() {
-        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
             message: makeResultMessage(),
             buttonText: "Сыграть еще раз!",
             completion: { [weak self] in guard let self else { return }
                 self.imageView.layer.borderColor = nil
-                self.currentQuestionIndex = 0
+                self.presenter.resetQuestionIndex()
                 self.correctAnswers = 0
                 self.imageView.image = UIImage(named: "Loading")
                 self.questionFactory?.requestNextQuestion()
@@ -132,7 +121,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
         let totalPlaysCountLine = "Количество сыгранных квизов: \(statisticService.gameCount)"
-        let currentCameResultLine = "Ваш результат: \(correctAnswers)/\(questionsAmount)"
+        let currentCameResultLine = "Ваш результат: \(correctAnswers)/\(presenter.questionsAmount)"
         let bestGameInfoLine = "Рекорд \(bestGame.correct)/\(bestGame.total) (\(resultDate))"
         let averageAccuracyLine = "Средняя точность: \(accuracy)%"
         let resultMessage = [currentCameResultLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
@@ -169,7 +158,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
                 // сбрасываем состояние игры на 1 вопрос
-                self.currentQuestionIndex = 0
+                self.presenter.resetQuestionIndex()
                 self.correctAnswers = 0
                 self.imageView.image = UIImage(named: "Loading")
                 self.questionFactory?.requestNextQuestion()
