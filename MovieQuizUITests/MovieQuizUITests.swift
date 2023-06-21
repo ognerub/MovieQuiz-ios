@@ -43,6 +43,17 @@ final class MovieQuizUITests: XCTestCase {
         XCTAssertNotEqual(firstPosterData, secondPosterData)
     }
     
+    func testNoButton() {
+        sleep(1)
+        let firstPoster = app.images["Poster"]
+        let firstPosterData = firstPoster.screenshot().pngRepresentation
+        app.buttons["No"].tap()
+        sleep(1)
+        let secondPoster = app.images["Poster"]
+        let secondPosterData = secondPoster.screenshot().pngRepresentation
+        XCTAssertNotEqual(firstPosterData, secondPosterData)
+    }
+    
     func testIndexLabel() {
         sleep(1)
         let indexLabel = app.staticTexts["Index"]
