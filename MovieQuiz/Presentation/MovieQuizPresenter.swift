@@ -10,7 +10,11 @@ import UIKit
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     private var questionFactory: QuestionFactoryProtocol?
-    private weak var viewController: MovieQuizViewController?
+    
+    //private weak var viewController: MovieQuizViewController?
+    // подсовываем mock`овый протокол для тестирования
+    private weak var viewController: MovieQuizViewControllerProtocol?
+    
     private var statisticService: StatisticService?
     private var currentQuestion: QuizQuestion?
     private let questionsAmount: Int = 10
@@ -18,7 +22,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private var correctAnswers: Int = 0
     private var isCorrect: Bool = false
     
-    init(viewController: MovieQuizViewController) {
+    //init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
         statisticService = StatisticServiceImpl()
         questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
@@ -56,7 +61,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         currentQuestionIndex += 1
         questionFactory?.requestNextQuestion()
     }
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             // меняем отображение картинки с локальной на загруженную
             image: (UIImage(data: model.image) ?? UIImage(named: "Loading")) ?? UIImage(),
@@ -137,3 +142,4 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         return resultMessage
     }
 }
+

@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     // MARK: - Properties
     @IBOutlet private weak var imageView: UIImageView!
@@ -44,7 +44,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     /// метод отображающий итоговый результат игры
-    private func showFinalResults() {
+    func showFinalResults() {
         presenter.statisticServiceStore()
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
