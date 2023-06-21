@@ -9,25 +9,21 @@ import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    var questionFactory: QuestionFactoryProtocol?
-    weak var viewController: MovieQuizViewController?
-    var statisticService: StatisticService?
-    var alertPresenter: AlertPresenterProtocol?
-    var currentQuestion: QuizQuestion?
-    let questionsAmount: Int = 10
+    private var questionFactory: QuestionFactoryProtocol?
+    private weak var viewController: MovieQuizViewController?
+    private var statisticService: StatisticService?
+    private var currentQuestion: QuizQuestion?
+    private let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
-    var correctAnswers: Int = 0
-
-    var isCorrect: Bool = false
+    private var correctAnswers: Int = 0
+    private var isCorrect: Bool = false
     
-    // MARK: - For viewDidLoad() in MQVC
-    
-    func viewDidLoad() {
-        // инъекция через свойство, поэтому задаем делегата в методе
-        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
-        questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
+    init(viewController: MovieQuizViewController) {
+        self.viewController = viewController
         statisticService = StatisticServiceImpl()
-        alertPresenter = AlertPresenterImpl(viewController: viewController)
+        questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
+        viewController.showLoadingIndicator()
     }
     
     // MARK: - Loading from network
@@ -43,16 +39,24 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     // MARK: - Other functions (methods)
+    
+    func restartGame() {
+        resetQuestionIndex()
+        correctAnswers = 0
+        questionFactory?.requestNextQuestion()
+    }
+        
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
     func resetQuestionIndex() {
         currentQuestionIndex = 0
     }
-    func swithToNextQuestion() {
+    func switchToNextQuestion() {
         currentQuestionIndex += 1
+        questionFactory?.requestNextQuestion()
     }
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             // меняем отображение картинки с локальной на загруженную
             image: (UIImage(data: model.image) ?? UIImage(named: "Loading")) ?? UIImage(),
@@ -71,7 +75,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         didAnswer(isYes: false)    }
     
     /// создаем отдельный метод для повторяющегося кода кнопок
-    func didAnswer(isYes: Bool) {
+    private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
         }
@@ -82,7 +86,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     
     // MARK: - QuestionFactoryDelegate
-
+    
     func didReceiveNextQuestion(_ question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -94,7 +98,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
         viewController?.yesAndNoButtonsActivation(nowItIs: true)
     }
-    func showAnswerResult() {
+    
+    private func showAnswerResult() {
         if isCorrect { self.correctAnswers += 1 }
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         // запускаем через 1 секунду с помощью диспетчера задач
@@ -103,6 +108,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             self.viewController?.showNextQuestionOrResults()
         }
     }
+    
+    func statisticServiceStore() {
+        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+    }
+    
     /// метод для формирования статистического сообщения в конце игры
     func makeResultMessage() -> String {
         
@@ -125,5 +135,5 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         let resultMessage = [currentCameResultLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
         
         return resultMessage
-    }    
+    }
 }

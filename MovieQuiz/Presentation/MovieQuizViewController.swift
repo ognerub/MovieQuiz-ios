@@ -9,17 +9,17 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
-    private var presenter = MovieQuizPresenter()
+    private var alertPresenter: AlertPresenterProtocol?
+    private var presenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.layer.masksToBounds = true
         imageView.layer.cornerRadius = 20
-        showLoadingIndicator()
         /// добавляем чтобы заработала связь с MVP
-        presenter.viewController = self
-        presenter.viewDidLoad()
+        presenter = MovieQuizPresenter(viewController: self)
+        alertPresenter = AlertPresenterImpl(viewController: self)
     }
 
     // MARK: - Private functions
@@ -39,14 +39,13 @@ final class MovieQuizViewController: UIViewController {
             showFinalResults()
         } else {
             showLoadingIndicator()
-            presenter.swithToNextQuestion()
-            presenter.questionFactory?.requestNextQuestion()
+            presenter.switchToNextQuestion()
         }
     }
     
     /// метод отображающий итоговый результат игры
-    func showFinalResults() {
-        presenter.statisticService?.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
+    private func showFinalResults() {
+        presenter.statisticServiceStore()
         let alertModel = AlertModel(
             title: "Этот раунд окончен!",
             message: presenter.makeResultMessage(),
@@ -54,11 +53,9 @@ final class MovieQuizViewController: UIViewController {
             completion: { [weak self] in guard let self else { return }
                 self.imageView.layer.borderColor = nil
                 self.imageView.image = UIImage(named: "Loading")
-                self.presenter.resetQuestionIndex()
-                self.presenter.correctAnswers = 0
-                self.presenter.questionFactory?.requestNextQuestion()
+                self.presenter.restartGame()
             })
-        presenter.alertPresenter?.show(with: alertModel)
+        alertPresenter?.show(with: alertModel)
     }
     
     /// метод, отображающий алерт с ошибкой загрузки
@@ -70,12 +67,10 @@ final class MovieQuizViewController: UIViewController {
             buttonText: "Попробовать еще раз",
             completion: { [weak self] in guard let self = self else {return}
                 // сбрасываем состояние игры на 1 вопрос
-                self.presenter.resetQuestionIndex()
-                self.presenter.correctAnswers = 0
                 self.imageView.image = UIImage(named: "Loading")
-                self.presenter.questionFactory?.requestNextQuestion()
+                self.presenter.restartGame()
             })
-        presenter.alertPresenter?.show(with: model)
+        alertPresenter?.show(with: model)
     }
     /// метод, который будет показывать индикатор загрузки
     func showLoadingIndicator() {
