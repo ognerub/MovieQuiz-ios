@@ -23,11 +23,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - For viewDidLoad() in MQVC
     
     func viewDidLoad() {
-        viewController?.imageView.layer.masksToBounds = true
-        viewController?.imageView.layer.cornerRadius = 20
         // инъекция через свойство, поэтому задаем делегата в методе
         questionFactory = QuestionFactoryImpl(moviesLoader: MoviesLoader(), delegate: self)
-        showLoadingIndicator()
         questionFactory?.loadData() // загружаем данные единожды, по хорошему нужно загружать до viewDidLoad ?
         statisticService = StatisticServiceImpl()
         alertPresenter = AlertPresenterImpl(viewController: viewController)
@@ -36,29 +33,25 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - Loading from network
     /// метод начала загрузки (происходит единожды)
     func didLoadDataFromServer() {
-        hideLoadingIndicator()
+        viewController?.hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
     func didFailToLoadData(with error: Error) {
-        hideLoadingIndicator()
-        showNetworkError(message: error.localizedDescription)
+        viewController?.hideLoadingIndicator()
+        viewController?.showNetworkError(message: error.localizedDescription)
     }
     
     // MARK: - Other functions (methods)
-    
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
-    
     func resetQuestionIndex() {
         currentQuestionIndex = 0
     }
-    
     func swithToNextQuestion() {
         currentQuestionIndex += 1
     }
-    
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             // меняем отображение картинки с локальной на загруженную
@@ -72,12 +65,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - Actions
     
     func yesButtonClicked() {
-        didAnswer(isYes: true)
-    }
+        didAnswer(isYes: true)    }
     
     func noButtonClicked() {
-        didAnswer(isYes: false)
-    }
+        didAnswer(isYes: false)    }
     
     /// создаем отдельный метод для повторяющегося кода кнопок
     func didAnswer(isYes: Bool) {
@@ -101,51 +92,17 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
         }
-        viewController?.yesButton.isEnabled = true
-        viewController?.noButton.isEnabled = true
-
+        viewController?.yesAndNoButtonsActivation(nowItIs: true)
     }
-    
-    /// метод, содержащий логику перехода в один из сценариев
-    func showNextQuestionOrResults() {
-        if self.isLastQuestion() {
-            self.showFinalResults()
-        } else {
-            self.swithToNextQuestion()
-            showLoadingIndicator()
-            questionFactory?.requestNextQuestion()
-        }
-    }
-    
     func showAnswerResult() {
         if isCorrect { self.correctAnswers += 1 }
-        viewController?.imageView.layer.borderWidth = 8
-        viewController?.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        viewController?.yesButton.isEnabled = false
-        viewController?.noButton.isEnabled = false
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         // запускаем через 1 секунду с помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
             // код, который мы хотим вызвать через 1 секунду
-            self.showNextQuestionOrResults()
+            self.viewController?.showNextQuestionOrResults()
         }
     }
-
-    func showFinalResults() {
-        statisticService?.store(correct: correctAnswers, total: self.questionsAmount)
-        let alertModel = AlertModel(
-            title: "Этот раунд окончен!",
-            message: makeResultMessage(),
-            buttonText: "Сыграть еще раз!",
-            completion: { [weak self] in guard let self else { return }
-                self.viewController?.imageView.layer.borderColor = nil
-                self.resetQuestionIndex()
-                self.correctAnswers = 0
-                self.viewController?.imageView.image = UIImage(named: "Loading")
-                self.questionFactory?.requestNextQuestion()
-            })
-        alertPresenter?.show(with: alertModel)
-    }
-    
     /// метод для формирования статистического сообщения в конце игры
     func makeResultMessage() -> String {
         
@@ -168,33 +125,5 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         let resultMessage = [currentCameResultLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
         
         return resultMessage
-    }
-    
-    
-    func showNetworkError(message: String) {
-        let model = AlertModel(
-            title: "Что-то пошло не так(",
-            /// скрыл  message который соответствует  шаблону figma, но при этом добился оторажения текущей ошибки, дописав в Question Factory в catch метода requestNextQuestion - self.loadData()
-            message: message,
-            buttonText: "Попробовать еще раз",
-            completion: { [weak self] in guard let self = self else {return}
-                // сбрасываем состояние игры на 1 вопрос
-                self.resetQuestionIndex()
-                self.correctAnswers = 0
-                self.viewController?.imageView.image = UIImage(named: "Loading")
-                self.questionFactory?.requestNextQuestion()
-            })
-        alertPresenter?.show(with: model)
-    }
-    
-    /// метод, который будет показывать индикатор загрузки
-    func showLoadingIndicator() {
-        viewController?.activityIndicator.startAnimating() // включаем анимацию
-    }
-    /// метод, скрывающий индикатор загрузки
-    func hideLoadingIndicator() {
-        viewController?.activityIndicator.stopAnimating()
-        
-    }
-    
+    }    
 }
