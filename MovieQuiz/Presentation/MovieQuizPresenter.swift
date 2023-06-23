@@ -9,18 +9,17 @@ import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    private var questionFactory: QuestionFactoryProtocol?
-    
-    //private weak var viewController: MovieQuizViewController?
-    // подсовываем mock`овый протокол для тестирования
-    private weak var viewController: MovieQuizViewControllerProtocol?
-    
-    private var statisticService: StatisticService?
-    private var currentQuestion: QuizQuestion?
     private let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
     private var isCorrect: Bool = false
+    private var questionFactory: QuestionFactoryProtocol?
+    private var statisticService: StatisticService?
+    private var currentQuestion: QuizQuestion?
+    
+    //private weak var viewController: MovieQuizViewController?
+    // подсовываем mock`овый протокол для тестирования
+    private weak var viewController: MovieQuizViewControllerProtocol?
     
     //init(viewController: MovieQuizViewController) {
     init(viewController: MovieQuizViewControllerProtocol) {
@@ -31,10 +30,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController.showLoadingIndicator()
     }
     
-    // MARK: - Loading from network
+    // MARK: - Methods
     /// метод начала загрузки (происходит единожды)
     func didLoadDataFromServer() {
-        viewController?.hideLoadingIndicator()
+        viewController?.showLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     /// метод ошибки во время загрузки данных (происходит при каждой ошибке)
@@ -43,22 +42,19 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.showNetworkError(message: error.localizedDescription)
     }
     
-    // MARK: - Other functions (methods)
-    
     func restartGame() {
         resetQuestionIndex()
         correctAnswers = 0
-        questionFactory?.requestNextQuestion()
+        questionFactory?.loadData()
     }
         
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
-    func resetQuestionIndex() {
-        currentQuestionIndex = 0
-    }
+    
     func switchToNextQuestion() {
         currentQuestionIndex += 1
+        viewController?.showLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -71,24 +67,15 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         return questionStep
     }
     
-    // MARK: - Actions
-    
     func yesButtonClicked() {
-        didAnswer(isYes: true)    }
-    
-    func noButtonClicked() {
-        didAnswer(isYes: false)    }
-    
-    /// создаем отдельный метод для повторяющегося кода кнопок
-    private func didAnswer(isYes: Bool) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = isYes
-        isCorrect = givenAnswer == currentQuestion.correctAnswer
-        showAnswerResult()
+        didAnswer(isYes: true)
+        
     }
     
+    func noButtonClicked() {
+        didAnswer(isYes: false)
+        
+    }
     
     // MARK: - QuestionFactoryDelegate
     
@@ -104,22 +91,67 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.yesAndNoButtonsActivation(nowItIs: true)
     }
     
+    func storeStatistic() {
+        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+    }
+    
+    func quizResultText () -> String {
+        makeResultMessage()
+    }
+    
+    /// метод определяющий что отображать, следующий вопрос или результат игры
+    func showNextQuestionOrResults() {
+        if isLastQuestion() {
+            viewController?.showFinalResults()
+        } else {
+            viewController?.showLoadingIndicator()
+            switchToNextQuestion()
+        }
+    }
+    
+    func createFinalResultsAlerModel() -> AlertModel {
+        storeStatistic()
+        let alertModel = AlertModel(
+            title: "Этот раунд окончен!",
+            message: quizResultText(),
+            buttonText: "Сыграть еще раз!",
+            completion: { [weak self] in guard let self else { return }
+                self.restartGame()
+            })
+        return alertModel
+    }
+    
+    
+    // MARK: - Private methods
+    
+    private func resetQuestionIndex() {
+        currentQuestionIndex = 0
+    }
+    
+    /// создаем отдельный метод для повторяющегося кода кнопок
+    private func didAnswer(isYes: Bool) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let givenAnswer = isYes
+        isCorrect = givenAnswer == currentQuestion.correctAnswer
+        showAnswerResult()
+    }
+    
     private func showAnswerResult() {
-        if isCorrect { self.correctAnswers += 1 }
+        if isCorrect {
+            self.correctAnswers += 1
+        }
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         // запускаем через 1 секунду с помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in guard let self = self else { return }
             // код, который мы хотим вызвать через 1 секунду
-            self.viewController?.showNextQuestionOrResults()
+            self.showNextQuestionOrResults()
         }
     }
     
-    func statisticServiceStore() {
-        statisticService?.store(correct: correctAnswers, total: questionsAmount)
-    }
-    
     /// метод для формирования статистического сообщения в конце игры
-    func makeResultMessage() -> String {
+    private func makeResultMessage() -> String {
         
         guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
             assertionFailure("Error message: Show final result")
@@ -134,7 +166,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         
         let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
         let totalPlaysCountLine = "Количество сыгранных квизов: \(statisticService.gameCount)"
-        let currentCameResultLine = "Ваш результат: \(correctAnswers)/\(self.questionsAmount)"
+        let currentCameResultLine = "Ваш результат: \(correctAnswers)/\(questionsAmount)"
         let bestGameInfoLine = "Рекорд \(bestGame.correct)/\(bestGame.total) (\(resultDate))"
         let averageAccuracyLine = "Средняя точность: \(accuracy)%"
         let resultMessage = [currentCameResultLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")

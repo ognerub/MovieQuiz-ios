@@ -10,11 +10,10 @@ import UIKit
 /// создаем протокол для unit-теста
 protocol MovieQuizViewControllerProtocol: AnyObject {
     func show(quiz step: QuizStepViewModel)
-    func showNextQuestionOrResults()
-    func showFinalResults()
     func showNetworkError(message: String)
-    func showLoadingIndicator()
-    func hideLoadingIndicator()
+    func showFinalResults()
     func highlightImageBorder(isCorrectAnswer: Bool)
     func yesAndNoButtonsActivation(nowItIs: Bool)
+    func showLoadingIndicator()
+    func hideLoadingIndicator()
 }

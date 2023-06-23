@@ -9,14 +9,13 @@ import XCTest
 @testable import MovieQuiz
 
 final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
-    func show(quiz step: MovieQuiz.QuizStepViewModel) { }
-    func showNextQuestionOrResults() { }
-    func showFinalResults() { }
+    func show(quiz step: QuizStepViewModel) { }
     func showNetworkError(message: String) { }
-    func showLoadingIndicator() { }
-    func hideLoadingIndicator() { }
+    func showFinalResults() { }
     func highlightImageBorder(isCorrectAnswer: Bool) { }
     func yesAndNoButtonsActivation(nowItIs: Bool) { }
+    func showLoadingIndicator() { }
+    func hideLoadingIndicator() { }
 }
 
 final class MovieQuizPresenterTests: XCTestCase {
