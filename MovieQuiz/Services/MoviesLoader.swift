@@ -10,7 +10,6 @@ import Foundation
 protocol MoviesLoading {
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void)
 }
-
 // создаем загрузчик
 struct MoviesLoader: MoviesLoading {
     // MARK: - Network Client
