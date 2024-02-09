@@ -8,7 +8,7 @@
 
 Планы по доработке: нет.
 
-Стек: #Swift, #InterfaceBuilder, #User Defaults, #MVC, #MVP, #URLSession, #URLRequestw
+Стек: #Swift, #InterfaceBuilder, #User Defaults, #MVC, #MVP, #URLSession, #URLRequest
 
 Ссылки:
 
