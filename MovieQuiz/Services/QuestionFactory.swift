@@ -34,7 +34,7 @@ extension QuestionFactoryImpl: QuestionFactoryProtocol {
                 guard let self = self else {return}
                 switch result {
                 case .success(let mostPopularMovies):
-                    self.movies = mostPopularMovies.items ?? [] // сохранение фильма в новую переменную
+                    self.movies = mostPopularMovies.items // сохранение фильма в новую переменную
                     self.delegate?.didLoadDataFromServer() // сообщаем о загрузке данных
                     
                 case .failure(let error):
